@@ -267,6 +267,9 @@ var ETQ = { nuevo:"Nuevo", contestado:"Contestado", reunion_agendada:"Reunión a
 var ABIERTAS = ["nuevo","contestado","reunion_agendada","reunion_realizada","propuesta"];
 var TEMP = { caliente:"🔥 Caliente", tibio:"🌤 Tibio", frio:"❄️ Frío" };
 var TIC = { contactar:"👋", proximo:"📌", citar:"📅", seguir:"🔁", respondio:"💬", reunion_hoy:"🎥", reunion_paso:"❓", encuesta_reunion:"📝", propuesta:"📄", encuesta_no_compra:"🤔" };
+var VALOR_MIN = 3000;   /* un sistema arranca en $3.000: todo lead vale al menos eso hasta que se cotice */
+function valor(c){ return Number(c && c.valor_usd) || VALOR_MIN; }
+function usd(n){ return "$" + Math.round(n).toLocaleString("es-CR"); }
 var MOTIVOS = ["Precio","No entendió para qué le sirve","No es el momento","Se fue con otro","No contestó más","Lo tiene que consultar","Otro"];
 
 function $(i){ return document.getElementById(i); }
@@ -342,11 +345,12 @@ function kpis(l){ return '<div class="kpis">' + l.map(function(k){ return '<div 
 
 function vHoy(){
   var k = D.kpis;
-  var h = kpis([["Clientes activos", k.abiertos], ["Nuevos esta semana", k.nuevos_semana, "oro"], ["Urgentes", k.urgentes, k.urgentes ? "rojo" : ""], ["Reuniones agendadas", k.reuniones_agendadas], ["Dejaron de responder", k.sin_respuesta], ["Ganados", k.ganados, "verde"]]);
+  var enJuego = D.clientes.filter(function(c){ return ABIERTAS.indexOf(c.etapa) !== -1; }).reduce(function(a, c){ return a + valor(c); }, 0);
+  var h = kpis([["En juego", usd(enJuego), "oro"], ["Clientes activos", k.abiertos], ["Nuevos esta semana", k.nuevos_semana], ["Urgentes", k.urgentes, k.urgentes ? "rojo" : ""], ["Reuniones agendadas", k.reuniones_agendadas], ["Dejaron de responder", k.sin_respuesta], ["Ganados", k.ganados, "verde"]]);
   var urg = D.tareas.filter(function(x){ return x.prioridad === 1; }), norm = D.tareas.filter(function(x){ return x.prioridad !== 1; });
   function lista(l){ return l.map(function(x){
     return '<div class="tarea" data-c="' + esc(x.cliente_id) + '"><div class="ic">' + (TIC[x.tipo] || "•") + '</div><div class="cu"><div class="q">' + esc(x.txt) + '</div>' +
-      '<div class="s">' + esc(x.nombre) + (x.negocio && x.negocio !== x.nombre ? " · " + esc(x.negocio) : "") + '</div></div>' + chip(x.canal) + '<span class="id">' + esc(x.cliente_id) + '</span></div>';
+      '<div class="s">' + esc(x.nombre) + (x.negocio && x.negocio !== x.nombre ? " · " + esc(x.negocio) : "") + '</div></div>' + chip(x.canal) + '<span class="id">' + usd(valor(porId(x.cliente_id))) + ' · ' + esc(x.cliente_id) + '</span></div>';
   }).join(""); }
   if(!D.tareas.length) h += '<div class="vacio">Todo al día. No hay seguimientos pendientes. 🎉</div>';
   if(urg.length) h += '<div class="grupo"><h3><i></i>Urgente</h3>' + lista(urg) + '</div>';
@@ -386,11 +390,12 @@ function ligarFiltros(){
 
 function vEmbudo(){
   var cols = ["nuevo","contestado","reunion_agendada","reunion_realizada","propuesta","ganado","perdido","sin_respuesta","no_califica"];
-  $("vista").innerHTML = '<p class="ayuda-emb">Arrastrá una tarjeta a otra columna para cambiarla de etapa, o tocá «Mover» (en el celular).</p><div class="embudo">' + cols.map(function(e){
+  $("vista").innerHTML = '<p class="ayuda-emb">Arrastrá una tarjeta a otra columna para cambiarla de etapa, o tocá «Mover» (en el celular). * = valor mínimo de un sistema ($3.000) mientras no se cotice.</p><div class="embudo">' + cols.map(function(e){
     var l = D.clientes.filter(function(c){ return c.etapa === e; });
-    return '<div class="col" data-etapa="' + e + '"><h4>' + ETQ[e] + '<span>' + l.length + '</span></h4>' + l.slice(0, 80).map(function(c){
+    var tot = l.reduce(function(a, c){ return a + valor(c); }, 0);
+    return '<div class="col" data-etapa="' + e + '"><h4>' + ETQ[e] + '<span>' + l.length + (e !== "no_califica" && l.length ? ' · ' + usd(tot) : '') + '</span></h4>' + l.slice(0, 80).map(function(c){
       return '<div class="tj' + (c.temperatura === "caliente" ? " caliente" : "") + '" draggable="true" data-c="' + esc(c.cliente_id) + '"><button class="mv" data-mover="' + esc(c.cliente_id) + '">Mover</button><b>' + esc(nombre(c)) + '</b><small>' + esc(c.cliente_id) + ' · ' + esc(c.canal || "") +
-        (c.temperatura === "caliente" ? ' · 🔥' : "") + (c.valor_usd ? ' · $' + Number(c.valor_usd).toLocaleString("es-CR") : "") + (c.tareas.length ? ' · <span style="color:var(--oro2)">' + c.tareas.length + ' tarea' + (c.tareas.length > 1 ? "s" : "") + '</span>' : "") + '</small></div>';
+        (c.temperatura === "caliente" ? ' · 🔥' : "") + (e !== "no_califica" ? ' · ' + usd(valor(c)) + (c.valor_usd ? "" : "*") : "") + (c.tareas.length ? ' · <span style="color:var(--oro2)">' + c.tareas.length + ' tarea' + (c.tareas.length > 1 ? "s" : "") + '</span>' : "") + '</small></div>';
     }).join("") + '</div>';
   }).join("") + '</div>';
   ligarArrastre();
@@ -435,7 +440,7 @@ function vAtencion(){
       l.map(function(c){
         var cli = porClave[c.contacto];
         return '<div class="tarea" ' + (cli ? 'data-c="' + esc(cli.cliente_id) + '"' : 'data-chat="' + esc(c.contacto) + '"') + '><div class="ic">💬</div><div class="cu"><div class="q">' + esc(c.nombre || (cli && nombre(cli)) || c.contacto) + '</div><div class="s">' + esc(c.ultimo_mensaje) + '</div></div>' +
-          chip(c.canal) + '<span class="id">' + (cli ? esc(cli.cliente_id) : "sin ID") + ' · ' + hace(c.fecha_ultimo) + '</span></div>';
+          chip(c.canal) + '<span class="id">' + (cli && ABIERTAS.indexOf(cli.etapa) !== -1 ? '💰 ' + usd(valor(cli)) + ' · ' : '') + (cli ? esc(cli.cliente_id) : "sin ID") + ' · ' + hace(c.fecha_ultimo) + '</span></div>';
       }).join("");
   }).catch(function(){ $("vista").innerHTML = '<div class="vacio">No se pudo cargar.</div>'; });
 }
@@ -489,7 +494,8 @@ function pintarFicha(){
   var h = '<div class="f-cab"><div class="fila"><span class="id" style="color:var(--oro2);font-weight:700">' + esc(c.cliente_id) + '</span>' + chip(c.canal) + etapa(c.etapa) +
     '<span class="temp">' + (TEMP[c.temperatura] || "") + '</span><button class="x" id="f-x" aria-label="Cerrar">&times;</button></div>' +
     '<h3>' + esc(nombre(c)) + '</h3><div class="sub">' + esc([c.negocio !== c.nombre ? c.negocio : "", c.origen_detalle, c.fuente ? "Fuente: " + c.fuente + (c.campana ? " · " + c.campana : "") : ""].filter(Boolean).join(" · ")) +
-    ' · Entró ' + fecha(c.primer_contacto, true) + '</div></div>';
+    ' · Entró ' + fecha(c.primer_contacto, true) + '</div>' +
+    (ABIERTAS.indexOf(c.etapa) !== -1 ? '<div style="margin-top:8px;font-size:14px"><b style="color:var(--oro2)">💰 ' + usd(valor(c)) + ' en juego</b> <span style="color:var(--gris);font-size:12.5px">' + (c.valor_usd ? "(valor cotizado)" : "(mínimo de un sistema: pago único desde $3.000)") + '</span></div>' : '') + '</div>';
   if(c.tareas && c.tareas.length) h += '<div class="f-sec tareas-f"><h4>Lo que toca</h4>' + c.tareas.map(function(t){ return '<div class="tf p' + t.prioridad + '">' + (TIC[t.tipo] || "•") + ' ' + esc(t.txt) + '</div>'; }).join("") + '</div>';
   h += '<div class="f-sec"><h4>Acciones</h4><div class="acciones">' +
     (wa ? '<a class="btn2 v" href="https://wa.me/' + wa + '" target="_blank" rel="noopener">WhatsApp</a><a class="btn2 a" href="tel:+' + wa + '">Llamar</a>' : "") +
@@ -506,7 +512,7 @@ function pintarFicha(){
     campo("nombre", "Nombre", c.nombre) + campo("negocio", "Negocio", c.negocio) + campo("telefono", "Teléfono", c.telefono) + campo("correo", "Correo", c.correo) +
     sel("etapa", "Etapa", c.etapa, Object.keys(ETQ).map(function(e){ return [e, ETQ[e]]; })) + sel("temperatura", "Temperatura", c.temperatura, [["caliente","🔥 Caliente"],["tibio","🌤 Tibio"],["frio","❄️ Frío"]]) +
     campo("proximo_paso", "Próximo paso", c.proximo_paso) + campo("fecha_proximo", "Fecha del próximo paso", c.fecha_proximo, "date") +
-    campo("responsable", "Responsable", c.responsable) + campo("valor_usd", "Valor estimado (USD)", c.valor_usd || "", "number") +
+    campo("responsable", "Responsable", c.responsable) + campo("valor_usd", "Valor estimado (USD) — mínimo 3000", c.valor_usd || "", "number") +
     campo("fuente", "Fuente", c.fuente) + campo("campana", "Campaña", c.campana) +
     '</div><label>Notas</label><textarea class="campo" id="fc-notas">' + esc(c.notas) + '</textarea>' +
     '<div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="btn" id="f-guardar">Guardar cambios</button>' +
@@ -572,7 +578,7 @@ function dResultado(estado){
     function(){ accion({ accion:"reunion_resultado", estado:estado, detalle:$("d-det").value }, "Guardado"); });
 }
 function dPropuesta(){
-  dialogo('<h3>Propuesta enviada</h3><label>Valor (USD)</label><input class="campo" type="number" id="d-v" value="' + esc(FICHA.c.valor_usd || "") + '"><label>Detalle</label><input class="campo" id="d-det" placeholder="Ej.: WhatsApp + CRM, implementación + mensualidad">',
+  dialogo('<h3>Propuesta enviada</h3><label>Valor (USD)</label><input class="campo" type="number" id="d-v" min="3000" value="' + esc(FICHA.c.valor_usd || VALOR_MIN) + '"><label>Detalle</label><input class="campo" id="d-det" placeholder="Ej.: WhatsApp + CRM, implementación + mensualidad">',
     function(){ accion({ accion:"propuesta", valor_usd:$("d-v").value, detalle:$("d-det").value }, "Propuesta registrada"); });
 }
 function dCerrar(res){
@@ -580,7 +586,7 @@ function dCerrar(res){
     dialogo('<h3>Marcar como perdido</h3><p class="p">El motivo alimenta el análisis de «Encuestas».</p><label>Motivo</label><div class="opc" id="o-mot">' + MOTIVOS.map(function(m, i){ return '<button data-v="' + esc(m) + '"' + (i === 0 ? ' class="on"' : "") + '>' + esc(m) + '</button>'; }).join("") + '</div>',
       function(){ accion({ accion:"cerrar", resultado:"perdido", motivo:opc("o-mot") }, "Marcado como perdido"); }, "Marcar perdido");
   } else if(res === "ganado"){
-    dialogo('<h3>¡Ganado! 🎉</h3><label>Valor cerrado (USD)</label><input class="campo" type="number" id="d-v" value="' + esc(FICHA.c.valor_usd || "") + '">',
+    dialogo('<h3>¡Ganado! 🎉</h3><label>Valor cerrado (USD)</label><input class="campo" type="number" id="d-v" value="' + esc(FICHA.c.valor_usd || VALOR_MIN) + '">',
       function(){ accion({ accion:"cerrar", resultado:"ganado", valor_usd:$("d-v").value }, "¡Cliente ganado!"); }, "Marcar ganado");
   } else {
     dialogo('<h3>No es un cliente</h3><p class="p">Para contactos personales, proveedores o spam. Sale de las listas y de las tareas.</p>',
