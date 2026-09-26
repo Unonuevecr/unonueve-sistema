@@ -133,7 +133,18 @@ main{padding:26px 30px 90px;min-width:0}
 .col{background:var(--tinta2);border:1px solid var(--linea);border-radius:12px;padding:12px;min-height:200px}
 .col h4{font-size:12.5px;font-weight:600;margin-bottom:10px;display:flex;justify-content:space-between}
 .col h4 span{color:var(--gris)}
-.tj{background:var(--tinta);border:1px solid var(--linea);border-radius:10px;padding:10px 11px;margin-bottom:8px;cursor:pointer}
+.tj{background:var(--tinta);border:1px solid var(--linea);border-radius:10px;padding:10px 11px;margin-bottom:8px;cursor:grab;position:relative;user-select:none}
+.tj.arrastrando{opacity:.4}
+.col.sobre{border-color:var(--oro);background:#C8892F10}
+.tj .mv{position:absolute;top:7px;right:7px;font-size:11px;color:var(--gris);border:1px solid var(--linea);border-radius:6px;padding:1px 6px;background:var(--tinta2)}
+.tj .mv:hover{color:var(--oro2);border-color:var(--oro)}
+.tj b{padding-right:48px}
+.caliente{box-shadow:inset 3px 0 0 var(--rojo)}
+.ayuda-emb{color:var(--gris);font-size:12.5px;margin-bottom:12px}
+.lista-et{display:grid;gap:8px;margin-top:12px}
+.lista-et button{text-align:left;border:1px solid var(--linea);border-radius:9px;padding:10px 12px;display:flex;align-items:center;gap:10px}
+.lista-et button:hover{border-color:var(--oro)}
+.lista-et button[disabled]{opacity:.45;cursor:default}
 .tj:hover{border-color:var(--oro)}
 .tj b{display:block;font-weight:500;font-size:13.5px}
 .tj small{color:var(--gris);font-size:11.5px}
@@ -374,14 +385,44 @@ function ligarFiltros(){
 }
 
 function vEmbudo(){
-  var cols = ["nuevo","contestado","reunion_agendada","reunion_realizada","propuesta","ganado","perdido","sin_respuesta"];
-  $("vista").innerHTML = '<div class="embudo">' + cols.map(function(e){
+  var cols = ["nuevo","contestado","reunion_agendada","reunion_realizada","propuesta","ganado","perdido","sin_respuesta","no_califica"];
+  $("vista").innerHTML = '<p class="ayuda-emb">Arrastrá una tarjeta a otra columna para cambiarla de etapa, o tocá «Mover» (en el celular).</p><div class="embudo">' + cols.map(function(e){
     var l = D.clientes.filter(function(c){ return c.etapa === e; });
-    return '<div class="col"><h4>' + ETQ[e] + '<span>' + l.length + '</span></h4>' + l.slice(0, 60).map(function(c){
-      return '<div class="tj" data-c="' + esc(c.cliente_id) + '"><b>' + esc(nombre(c)) + '</b><small>' + esc(c.cliente_id) + ' · ' + esc(c.canal || "") +
-        (c.valor_usd ? ' · $' + Number(c.valor_usd).toLocaleString("es-CR") : "") + (c.tareas.length ? ' · <span style="color:var(--oro2)">' + c.tareas.length + ' tarea' + (c.tareas.length > 1 ? "s" : "") + '</span>' : "") + '</small></div>';
+    return '<div class="col" data-etapa="' + e + '"><h4>' + ETQ[e] + '<span>' + l.length + '</span></h4>' + l.slice(0, 80).map(function(c){
+      return '<div class="tj' + (c.temperatura === "caliente" ? " caliente" : "") + '" draggable="true" data-c="' + esc(c.cliente_id) + '"><button class="mv" data-mover="' + esc(c.cliente_id) + '">Mover</button><b>' + esc(nombre(c)) + '</b><small>' + esc(c.cliente_id) + ' · ' + esc(c.canal || "") +
+        (c.temperatura === "caliente" ? ' · 🔥' : "") + (c.valor_usd ? ' · $' + Number(c.valor_usd).toLocaleString("es-CR") : "") + (c.tareas.length ? ' · <span style="color:var(--oro2)">' + c.tareas.length + ' tarea' + (c.tareas.length > 1 ? "s" : "") + '</span>' : "") + '</small></div>';
     }).join("") + '</div>';
   }).join("") + '</div>';
+  ligarArrastre();
+}
+var ARRASTRE = null;
+function ligarArrastre(){
+  document.querySelectorAll(".embudo .tj").forEach(function(t){
+    t.addEventListener("dragstart", function(e){ ARRASTRE = t.getAttribute("data-c"); t.classList.add("arrastrando"); try{ e.dataTransfer.setData("text/plain", ARRASTRE); e.dataTransfer.effectAllowed = "move"; }catch(x){} });
+    t.addEventListener("dragend", function(){ t.classList.remove("arrastrando"); document.querySelectorAll(".col.sobre").forEach(function(c){ c.classList.remove("sobre"); }); });
+  });
+  document.querySelectorAll(".embudo .col").forEach(function(col){
+    col.addEventListener("dragover", function(e){ e.preventDefault(); col.classList.add("sobre"); });
+    col.addEventListener("dragleave", function(e){ if(!col.contains(e.relatedTarget)) col.classList.remove("sobre"); });
+    col.addEventListener("drop", function(e){ e.preventDefault(); col.classList.remove("sobre"); var id = ARRASTRE; ARRASTRE = null; if(id) moverA(id, col.getAttribute("data-etapa"), true); });
+  });
+}
+/* Mover a una etapa: las que piden datos abren su formulario */
+function moverA(id, etapa, soloDlg){
+  var c = porId(id); if(!c || c.etapa === etapa) return;
+  if(soloDlg || !FICHA) FICHA = { c: c, soloDlg: true };
+  if(etapa === "reunion_agendada") return dReunion();
+  if(etapa === "propuesta") return dPropuesta();
+  if(etapa === "ganado" || etapa === "perdido" || etapa === "no_califica") return dCerrar(etapa);
+  if(etapa === "reunion_realizada" && c.reunion_fecha) return dResultado("realizada");
+  accion({ accion:"guardar", cliente_id:id, cambios:{ etapa: etapa } }, "Movido a «" + ETQ[etapa] + "»");
+}
+function dMover(id){
+  var c = porId(id); if(!c) return;
+  if(!FICHA) FICHA = { c: c, soloDlg: true };
+  dialogo('<h3>Mover a…</h3><p class="p">' + esc(nombre(c)) + ' · ' + esc(c.cliente_id) + ' · hoy en «' + esc(ETQ[c.etapa]) + '»</p><div class="lista-et">' +
+    Object.keys(ETQ).map(function(e){ return '<button data-et="' + e + '"' + (e === c.etapa ? " disabled" : "") + '>' + etapa(e) + '</button>'; }).join("") + '</div>');
+  $("d-caja").querySelectorAll("[data-et]").forEach(function(b){ b.onclick = function(){ var e = b.getAttribute("data-et"); cerrarDlg(true); moverA(id, e, FICHA && FICHA.soloDlg); }; });
 }
 
 function vAtencion(){
@@ -451,7 +492,8 @@ function pintarFicha(){
     ' · Entró ' + fecha(c.primer_contacto, true) + '</div></div>';
   if(c.tareas && c.tareas.length) h += '<div class="f-sec tareas-f"><h4>Lo que toca</h4>' + c.tareas.map(function(t){ return '<div class="tf p' + t.prioridad + '">' + (TIC[t.tipo] || "•") + ' ' + esc(t.txt) + '</div>'; }).join("") + '</div>';
   h += '<div class="f-sec"><h4>Acciones</h4><div class="acciones">' +
-    (wa ? '<a class="btn2 v" href="https://wa.me/' + wa + '" target="_blank" rel="noopener">WhatsApp</a>' : "") +
+    (wa ? '<a class="btn2 v" href="https://wa.me/' + wa + '" target="_blank" rel="noopener">WhatsApp</a><a class="btn2 a" href="tel:+' + wa + '">Llamar</a>' : "") +
+    '<button class="btn2 o" data-a="mover">Mover a…</button>' +
     '<button class="btn2 a" data-a="contacto">Registrar contacto</button>' +
     '<button class="btn2" data-a="reunion">' + (c.etapa === "reunion_agendada" ? "Cambiar reunión" : "Agendar reunión") + '</button>' +
     (c.etapa === "reunion_agendada" ? '<button class="btn2 v" data-a="realizada">Reunión hecha</button><button class="btn2 r" data-a="no_asistio">No se presentó</button>' : "") +
@@ -486,8 +528,9 @@ function accion(cuerpo, ok){
   cuerpo.cliente_id = cuerpo.cliente_id || FICHA.c.cliente_id;
   return pedir("/sistema", cuerpo).then(function(d){
     if(!d || !d.ok){ aviso((d && d.motivo) || "No se pudo guardar"); return d; }
-    aviso(ok || "Listo"); var id = cuerpo.cliente_id;
-    return cargar().then(function(){ if(FICHA) abrirFicha(id); return d; });
+    aviso(ok || "Listo"); var id = cuerpo.cliente_id, reabrir = FICHA && !FICHA.soloDlg;
+    if(FICHA && FICHA.soloDlg) FICHA = null;
+    return cargar().then(function(){ if(reabrir) abrirFicha(id); return d; });
   }).catch(function(){ aviso("No se pudo guardar"); });
 }
 function guardarFicha(){
@@ -500,10 +543,10 @@ function dialogo(html, alAceptar, txtAceptar){
   $("d-caja").innerHTML = html + '<div class="pie"><button class="btn2" id="d-no">Cancelar</button>' + (alAceptar ? '<button class="btn" id="d-si">' + (txtAceptar || "Guardar") + '</button>' : "") + '</div>';
   $("dlg").style.display = "block";
   $("d-no").onclick = cerrarDlg;
-  if(alAceptar) $("d-si").onclick = function(){ if(alAceptar() !== false) cerrarDlg(); };
+  if(alAceptar) $("d-si").onclick = function(){ if(alAceptar() !== false) cerrarDlg(true); };
   $("d-caja").querySelectorAll(".opc").forEach(function(g){ g.onclick = function(e){ var b = e.target.closest("button"); if(!b) return; g.querySelectorAll("button").forEach(function(x){ x.classList.remove("on"); }); b.classList.add("on"); }; });
 }
-function cerrarDlg(){ $("dlg").style.display = "none"; }
+function cerrarDlg(seguir){ $("dlg").style.display = "none"; if(!seguir && FICHA && FICHA.soloDlg) FICHA = null; }
 function opc(id){ var b = document.querySelector("#" + id + " button.on"); return b ? b.getAttribute("data-v") : ""; }
 function manana(n){ var d = new Date(Date.now() + (n || 1) * 86400000); return d.toISOString().slice(0, 10); }
 
@@ -590,13 +633,14 @@ $("refrescar").onclick = cargar;
 $("btn-nuevo").onclick = dNuevo;
 document.addEventListener("click", function(e){
   var m = e.target.closest("[data-v]"); if(m && m.classList.contains("men")){ ir(m.getAttribute("data-v")); return; }
+  var mv = e.target.closest("[data-mover]"); if(mv){ e.stopPropagation(); FICHA = null; dMover(mv.getAttribute("data-mover")); return; }
   var fe = e.target.closest("[data-fe]"); if(fe){ FILTRO.etapa = fe.getAttribute("data-fe"); vClientes(); return; }
   if(e.target.id === "f-x" || e.target === $("ficha")){ cerrarFicha(); return; }
   if(e.target.id === "f-guardar"){ guardarFicha(); return; }
   var a = e.target.closest("[data-a]");
   if(a && FICHA){ var x = a.getAttribute("data-a");
     ({ contacto:dContacto, reunion:dReunion, realizada:function(){ dResultado("realizada"); }, no_asistio:function(){ dResultado("no_asistio"); },
-       propuesta:dPropuesta, encuesta:dEncuesta, ganado:function(){ dCerrar("ganado"); }, perdido:function(){ dCerrar("perdido"); }, no_califica:function(){ dCerrar("no_califica"); } })[x]();
+       propuesta:dPropuesta, encuesta:dEncuesta, mover:function(){ dMover(FICHA.c.cliente_id); }, ganado:function(){ dCerrar("ganado"); }, perdido:function(){ dCerrar("perdido"); }, no_califica:function(){ dCerrar("no_califica"); } })[x]();
     return; }
   var c = e.target.closest("[data-c]"); if(c && !e.target.closest("#ficha") && !e.target.closest("#dlg")){ abrirFicha(c.getAttribute("data-c")); return; }
   if(e.target.closest("[data-chat]")) aviso("Ese chat todavía no tiene ficha: aparece en unos minutos.");
