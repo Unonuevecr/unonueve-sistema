@@ -40,7 +40,7 @@ textarea.campo{min-height:70px;resize:vertical}
 .btn:hover{background:var(--oro2)}
 .btn:disabled{opacity:.5;cursor:default}
 .btn.full{width:100%;margin-top:20px;padding:12px}
-.btn2{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--linea);border-radius:9px;padding:8px 13px;font-size:13.5px;font-weight:500;transition:.15s;background:var(--tinta2)}
+.btn2{display:inline-flex;align-items:center;gap:7px;text-decoration:none;border:1px solid var(--linea);border-radius:9px;padding:8px 13px;font-size:13.5px;font-weight:500;transition:.15s;background:var(--tinta2)}
 .btn2:hover{border-color:var(--oro);color:var(--oro2)}
 .btn2.v{color:#8FD9A4}.btn2.r{color:#F0A392}.btn2.a{color:#A9CBEA}.btn2.o{color:var(--oro2)}
 .error{color:#F0A392;font-size:13px;margin-top:12px;min-height:18px}
@@ -387,7 +387,7 @@ function vEmbudo(){
 function vAtencion(){
   $("vista").innerHTML = '<div class="cargando">Cargando las conversaciones…</div>';
   pedir("/crm", { accion:"atencion" }).then(function(d){
-    var l = (d && d.conversaciones) || [];
+    var l = ((d && d.conversaciones) || []).filter(function(c){ return !/prueba|chequeo|bitacora_test|^demo_[tv]\d|^dm\d|md_check|salud_final/i.test(c.contacto + ' ' + (c.nombre || '')); });
     if(!l.length){ $("vista").innerHTML = '<div class="vacio">No hay conversaciones.</div>'; return; }
     var porClave = {}; D.clientes.forEach(function(c){ String(c.contactos || "").split(",").forEach(function(k){ if(k) porClave[k.trim()] = c; }); });
     $("vista").innerHTML = '<p class="sub" style="color:var(--gris);margin-bottom:12px">Lo que Claudia está atendiendo en WhatsApp, Instagram, Facebook, TikTok y la web. Tocá una para abrir la ficha del cliente.</p>' +
