@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="es-CR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#14110E">
+<title>Sistema UNONUEVECR</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{
+  --tinta:#14110E;--tinta2:#1C1815;--tinta3:#262019;--linea:#332C24;--blanco:#F7F4F0;--gris:#9A9086;--gris2:#6F665D;
+  --oro:#C8892F;--oro2:#E0B168;--verde:#5BB872;--rojo:#D9725E;--azul:#6FA3CF;--morado:#A98BD6;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--tinta)}
+body{color:var(--blanco);font:400 14.5px/1.5 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.serif{font-family:'Instrument Serif',Georgia,serif;font-style:italic;font-weight:400}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+input,select,textarea{font:inherit;color:var(--blanco)}
+a{color:inherit}
+.logo{display:flex;align-items:center;gap:10px}
+.logo svg{width:21px;height:auto;flex:none}
+.logo b{font-weight:700;letter-spacing:.06em;font-size:14.5px}
+.logo b span{color:var(--oro)}
+
+/* login */
+#login{min-height:100vh;display:grid;place-items:center;padding:24px}
+.caja-login{width:100%;max-width:380px;background:var(--tinta2);border:1px solid var(--linea);border-radius:16px;padding:34px 30px}
+.caja-login h1{font-size:23px;font-weight:600;margin:22px 0 4px}
+.caja-login p{color:var(--gris);font-size:13px;margin-bottom:18px}
+label{display:block;font-size:11.5px;color:var(--gris);margin:12px 0 6px;letter-spacing:.05em;text-transform:uppercase}
+.campo{width:100%;background:var(--tinta);border:1px solid var(--linea);border-radius:9px;padding:10px 12px;outline:none}
+.campo:focus{border-color:var(--oro)}
+textarea.campo{min-height:70px;resize:vertical}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--oro);color:#1A1206;font-weight:600;border-radius:9px;padding:10px 16px;transition:.15s}
+.btn:hover{background:var(--oro2)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.full{width:100%;margin-top:20px;padding:12px}
+.btn2{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--linea);border-radius:9px;padding:8px 13px;font-size:13.5px;font-weight:500;transition:.15s;background:var(--tinta2)}
+.btn2:hover{border-color:var(--oro);color:var(--oro2)}
+.btn2.v{color:#8FD9A4}.btn2.r{color:#F0A392}.btn2.a{color:#A9CBEA}.btn2.o{color:var(--oro2)}
+.error{color:#F0A392;font-size:13px;margin-top:12px;min-height:18px}
+
+/* layout */
+#app{display:none;min-height:100vh;grid-template-columns:220px 1fr}
+#lat{background:var(--tinta2);border-right:1px solid var(--linea);padding:22px 0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+#lat .logo{padding:0 20px 24px}
+.men{display:flex;align-items:center;gap:11px;padding:10px 20px;color:var(--gris);font-size:14px;width:100%;text-align:left;border-left:2px solid transparent}
+.men svg{width:17px;height:17px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.men:hover{color:var(--blanco);background:#ffffff08}
+.men.on{color:var(--blanco);border-left-color:var(--oro);background:#ffffff0b;font-weight:500}
+.men .n{margin-left:auto;font-size:11px;background:var(--oro);color:#1A1206;border-radius:20px;padding:0 7px;font-weight:700}
+#lat .pie{margin-top:auto;padding:16px 20px 0;border-top:1px solid var(--linea);font-size:12.5px;color:var(--gris)}
+main{padding:26px 30px 90px;min-width:0}
+.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.top h2{font-size:24px;font-weight:600;letter-spacing:-.3px}
+.top h2 .serif{color:var(--oro2);font-size:26px}
+.top .der{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--gris);flex-wrap:wrap}
+#barra-movil{display:none}
+@media(max-width:900px){
+  #app{grid-template-columns:1fr}#lat{display:none}
+  main{padding:18px 14px 96px}
+  #barra-movil{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:40;background:var(--tinta2);border-top:1px solid var(--linea);padding:6px 4px calc(6px + env(safe-area-inset-bottom));justify-content:space-around}
+  #barra-movil .men{flex-direction:column;gap:3px;padding:6px 4px;font-size:10.5px;border:0;width:auto;align-items:center;position:relative}
+  #barra-movil .men.on{background:none;color:var(--oro2)}
+  #barra-movil .men .n{position:absolute;top:0;right:-2px;margin:0;font-size:9.5px}
+}
+
+/* kpis */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px;margin-bottom:22px}
+.kpi{background:var(--tinta2);border:1px solid var(--linea);border-radius:12px;padding:14px 16px}
+.kpi .v{font-size:26px;font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums}
+.kpi .l{font-size:11px;color:var(--gris);text-transform:uppercase;letter-spacing:.06em;margin-top:4px}
+.kpi.oro .v{color:var(--oro2)}.kpi.rojo .v{color:var(--rojo)}.kpi.verde .v{color:var(--verde)}
+
+/* tareas */
+.grupo{margin-bottom:24px}
+.grupo h3{font-size:12px;color:var(--gris);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.grupo h3 i{width:8px;height:8px;border-radius:50%;background:var(--rojo)}
+.grupo.normal h3 i{background:var(--oro)}
+.tarea{display:flex;align-items:center;gap:13px;background:var(--tinta2);border:1px solid var(--linea);border-radius:12px;padding:12px 15px;margin-bottom:8px;cursor:pointer;transition:.12s}
+.tarea:hover{border-color:var(--oro)}
+.tarea .ic{width:34px;height:34px;border-radius:9px;background:var(--tinta3);display:grid;place-items:center;flex:none;font-size:16px}
+.tarea .cu{flex:1;min-width:0}
+.tarea .q{font-weight:500}
+.tarea .s{color:var(--gris);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tarea .id{font-size:11.5px;color:var(--gris2);font-variant-numeric:tabular-nums}
+
+/* chips */
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;letter-spacing:.03em;border-radius:6px;padding:2px 8px;border:1px solid var(--linea);white-space:nowrap}
+.ch-WhatsApp{color:#8DE0AE;border-color:#25D36655;background:#25D36614}
+.ch-Instagram{color:#E9A0C8;border-color:#C1358455;background:#C1358414}
+.ch-Facebook{color:#9CC3F5;border-color:#1877F255;background:#1877F214}
+.ch-TikTok{color:#E4E4E4;border-color:#ffffff33;background:#ffffff0d}
+.ch-Demo,.ch-Test,.ch-Web{color:var(--oro2);border-color:#C8892F55;background:#C8892F14}
+.et{font-size:11.5px;border-radius:20px;padding:2px 10px;border:1px solid var(--linea);white-space:nowrap;display:inline-block}
+.et-nuevo{color:#A9CBEA;border-color:#6FA3CF66}
+.et-contestado{color:var(--oro2);border-color:#C8892F66}
+.et-reunion_agendada{color:#C8B3EC;border-color:#A98BD666}
+.et-reunion_realizada{color:#C8B3EC;border-color:#A98BD666;background:#A98BD614}
+.et-propuesta{color:#F2C98B;border-color:#E0B16888;background:#E0B16814}
+.et-ganado{color:#8FD9A4;border-color:#5BB87288;background:#5BB87218}
+.et-perdido{color:#F0A392;border-color:#D9725E77}
+.et-sin_respuesta{color:var(--gris);border-color:var(--linea);background:#ffffff08}
+.et-no_califica{color:var(--gris2);border-color:var(--linea)}
+.temp{font-size:12px}
+
+/* filtros y tabla */
+.herr{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.herr .campo{width:auto;min-width:220px;flex:1;max-width:340px;padding:8px 12px}
+.herr select.campo{min-width:0;flex:none}
+.fl{border:1px solid var(--linea);border-radius:20px;padding:5px 12px;font-size:12.5px;color:var(--gris)}
+.fl.on{background:var(--oro);color:#1A1206;border-color:var(--oro);font-weight:600}
+.tabla{width:100%;border-collapse:separate;border-spacing:0 6px}
+.tabla th{font-size:11px;color:var(--gris);text-transform:uppercase;letter-spacing:.06em;font-weight:500;text-align:left;padding:4px 12px}
+.tabla td{background:var(--tinta2);border-top:1px solid var(--linea);border-bottom:1px solid var(--linea);padding:11px 12px;vertical-align:middle}
+.tabla td:first-child{border-left:1px solid var(--linea);border-radius:10px 0 0 10px}
+.tabla td:last-child{border-right:1px solid var(--linea);border-radius:0 10px 10px 0}
+.tabla tr{cursor:pointer}
+.tabla tr:hover td{border-color:var(--oro)}
+.tabla .nom{font-weight:500}
+.tabla .sub{color:var(--gris);font-size:12px}
+.tabla .id{font-variant-numeric:tabular-nums;color:var(--oro2);font-weight:600;font-size:12.5px}
+.alerta{color:var(--rojo);font-weight:600}
+@media(max-width:900px){.tabla .oc{display:none}}
+
+/* embudo */
+.embudo{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(230px,1fr);gap:12px;overflow-x:auto;padding-bottom:12px}
+.col{background:var(--tinta2);border:1px solid var(--linea);border-radius:12px;padding:12px;min-height:200px}
+.col h4{font-size:12.5px;font-weight:600;margin-bottom:10px;display:flex;justify-content:space-between}
+.col h4 span{color:var(--gris)}
+.tj{background:var(--tinta);border:1px solid var(--linea);border-radius:10px;padding:10px 11px;margin-bottom:8px;cursor:pointer}
+.tj:hover{border-color:var(--oro)}
+.tj b{display:block;font-weight:500;font-size:13.5px}
+.tj small{color:var(--gris);font-size:11.5px}
+
+/* tarjetas de análisis */
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:900px){.duo{grid-template-columns:1fr}}
+.tarj{background:var(--tinta2);border:1px solid var(--linea);border-radius:12px;padding:18px}
+.tarj h3{font-size:14px;font-weight:600;margin-bottom:12px}
+.barra{display:grid;grid-template-columns:minmax(120px,1.4fr) 2fr 36px;gap:10px;align-items:center;margin-bottom:9px;font-size:13px}
+.barra .b{height:9px;background:var(--tinta3);border-radius:9px;overflow:hidden}
+.barra .b i{display:block;height:100%;background:var(--oro);border-radius:9px}
+.barra .n{text-align:right;font-variant-numeric:tabular-nums;color:var(--gris)}
+.resp{border-top:1px solid var(--linea);padding:11px 0;font-size:13px}
+.resp:first-of-type{border-top:0}
+.resp .m{color:var(--gris);font-size:12px}
+.vacio{color:var(--gris);text-align:center;padding:40px 16px;font-size:13.5px}
+.cargando{color:var(--gris);text-align:center;padding:40px}
+
+/* ficha */
+#ficha{display:none;position:fixed;inset:0;z-index:60;background:#000000b8}
+#ficha .panel{position:absolute;top:0;right:0;bottom:0;width:min(720px,100%);background:var(--tinta);border-left:1px solid var(--linea);overflow:auto;padding:0 0 60px}
+.f-cab{position:sticky;top:0;background:var(--tinta);border-bottom:1px solid var(--linea);padding:16px 22px;z-index:2}
+.f-cab .fila{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.f-cab h3{font-size:19px;font-weight:600}
+.f-cab .x{margin-left:auto;font-size:26px;color:var(--gris);line-height:1;padding:0 4px}
+.f-cab .sub{color:var(--gris);font-size:13px;margin-top:3px}
+.f-sec{padding:18px 22px;border-bottom:1px solid var(--linea)}
+.f-sec h4{font-size:11.5px;color:var(--gris);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px}
+.acciones{display:flex;flex-wrap:wrap;gap:8px}
+.datos{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px}
+@media(max-width:600px){.datos{grid-template-columns:1fr}}
+.datos label{margin-top:8px}
+.tl{position:relative;padding-left:18px}
+.tl:before{content:"";position:absolute;left:5px;top:6px;bottom:6px;width:1px;background:var(--linea)}
+.ev{position:relative;margin-bottom:13px;font-size:13.5px}
+.ev:before{content:"";position:absolute;left:-17px;top:6px;width:9px;height:9px;border-radius:50%;background:var(--tinta3);border:2px solid var(--oro)}
+.ev.t-contacto:before{border-color:var(--azul)}.ev.t-reunion:before{border-color:var(--morado)}.ev.t-encuesta:before{border-color:var(--verde)}.ev.t-sistema:before,.ev.t-entrada:before{border-color:var(--gris)}
+.ev .m{color:var(--gris);font-size:11.5px}
+.msg{margin-bottom:10px;max-width:88%}
+.msg .t{border-radius:10px;padding:8px 11px;font-size:13.5px;white-space:pre-wrap;word-break:break-word}
+.msg.cli .t{background:var(--tinta3);border:1px solid var(--linea)}
+.msg.bot{margin-left:auto}.msg.bot .t{background:#C8892F14;border:1px solid #C8892F33}
+.msg .m{font-size:10.5px;color:var(--gris);margin:2px 3px}
+.tareas-f .tf{background:#C8892F12;border:1px solid #C8892F40;border-radius:9px;padding:8px 11px;margin-bottom:6px;font-size:13.5px}
+.tareas-f .tf.p1{background:#D9725E14;border-color:#D9725E55}
+
+/* diálogo */
+#dlg{display:none;position:fixed;inset:0;z-index:80;background:#000000c8;padding:20px;overflow:auto}
+#dlg .d{max-width:460px;margin:8vh auto;background:var(--tinta2);border:1px solid var(--linea);border-radius:14px;padding:22px}
+#dlg h3{font-size:17px;font-weight:600;margin-bottom:4px}
+#dlg .p{color:var(--gris);font-size:13px}
+#dlg .pie{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
+.opc{display:flex;gap:8px;flex-wrap:wrap}
+.opc button{border:1px solid var(--linea);border-radius:9px;padding:8px 12px;font-size:13.5px}
+.opc button.on{border-color:var(--oro);background:#C8892F22;color:var(--oro2)}
+.enlace{background:var(--tinta);border:1px dashed var(--oro);border-radius:9px;padding:10px;font-size:12.5px;word-break:break-all;margin-top:12px;color:var(--oro2)}
+#toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--oro);color:#1A1206;font-weight:600;border-radius:10px;padding:10px 16px;z-index:99;transition:.25s;pointer-events:none}
+#toast.on{opacity:1;transform:translateX(-50%)}
+@media(max-width:900px){#toast{bottom:88px}}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="login">
+  <div class="caja-login">
+    <div class="logo" data-logo></div>
+    <h1>Sistema de <span class="serif" style="color:var(--oro2)">seguimiento</span></h1>
+    <p>Entrá con tu usuario del portal de UNONUEVECR.</p>
+    <label for="u">Usuario</label>
+    <input id="u" class="campo" autocomplete="username" spellcheck="false" autocapitalize="off">
+    <label for="p">Contraseña</label>
+    <input id="p" class="campo" type="password" autocomplete="current-password">
+    <button class="btn full" id="entrar">Entrar</button>
+    <div class="error" id="err"></div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app">
+  <nav id="lat">
+    <div class="logo" data-logo></div>
+    <div id="menu"></div>
+    <div class="pie"><span id="quien"></span><br><button class="btn2" id="salir" style="margin-top:9px">Salir</button></div>
+  </nav>
+  <main>
+    <div class="top">
+      <h2 id="titulo"></h2>
+      <div class="der"><span id="act"></span><button class="btn2" id="refrescar">Actualizar</button><button class="btn" id="btn-nuevo">+ Cliente</button></div>
+    </div>
+    <div id="vista"><div class="cargando">Cargando…</div></div>
+  </main>
+  <nav id="barra-movil"></nav>
+</div>
+
+<!-- ============ FICHA ============ -->
+<div id="ficha"><div class="panel" id="f-panel"></div></div>
+
+<!-- ============ DIÁLOGO ============ -->
+<div id="dlg"><div class="d" id="d-caja"></div></div>
+<div id="toast"></div>
+
+<script>
+/* ===================== CONFIG ===================== */
+var API = "https://n8n-unonueve-n8n.i5i6e4.easypanel.host/webhook";
+/* ================================================= */
+var TOKEN = null, D = null, VISTA = "hoy", FILTRO = { q: "", etapa: "abiertos", canal: "" }, FICHA = null;
+var LOGO = '<svg viewBox="0 0 647.47 557.92" fill="#F7F4F0" aria-hidden="true"><path d="M102.04,0v543.23h-38.91V52.12L5.14,114.52l-5.14-4.4L102.04,0Z"/><path d="M137.27,372.92c0-18.35,14.68-33.03,33.04-33.03s32.3,14.68,32.3,33.03-14.68,32.3-32.3,32.3-33.04-14.68-33.04-32.3ZM137.27,524.88c0-17.62,14.68-32.3,33.04-32.3s32.3,14.68,32.3,32.3-14.68,33.03-32.3,33.03-33.04-14.68-33.04-33.03Z"/><path d="M352.36,549.84c140.21,0,224.63-132.14,246.66-255.47-26.43,65.33-90.29,106.44-161.5,106.44-116.72,0-199.68-83.69-199.68-199.67S326.67,2.2,437.52,2.2c129.2,0,209.95,104.98,209.95,228.31,0,162.97-123.33,326.67-295.11,326.67v-7.34ZM605.62,225.37c0-99.84-53.59-216.56-168.11-216.56-101.31,0-158.57,101.31-158.57,192.33s57.26,192.33,158.57,192.33c94.7,0,168.11-73.41,168.11-168.11Z"/></svg><b>UNONUEVE<span>CR</span></b>';
+var ICON = {
+  hoy: '<path d="M3 12h4l3 8 4-16 3 8h4"/>',
+  clientes: '<circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6"/><path d="M17 11a3 3 0 1 0 0-6M22 21c0-3-2-5-5-5"/>',
+  embudo: '<path d="M3 4h18l-7 8v6l-4 2v-8z"/>',
+  atencion: '<path d="M21 12a8 8 0 0 1-12 7l-5 1 1-4a8 8 0 1 1 16-4z"/>',
+  encuestas: '<path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/>',
+  campanas: '<path d="M3 11v2a1 1 0 0 0 1 1h3l6 5V5L7 10H4a1 1 0 0 0-1 1z"/><path d="M17 8a5 5 0 0 1 0 8"/>'
+};
+var MENU = [["hoy","Hoy"],["clientes","Clientes"],["embudo","Embudo"],["atencion","Chats"],["encuestas","Encuestas"],["campanas","Campañas"]];
+var ETQ = { nuevo:"Nuevo", contestado:"Contestado", reunion_agendada:"Reunión agendada", reunion_realizada:"Reunión realizada", propuesta:"Propuesta enviada", ganado:"Ganado", perdido:"Perdido", sin_respuesta:"Dejó de responder", no_califica:"No es cliente" };
+var ABIERTAS = ["nuevo","contestado","reunion_agendada","reunion_realizada","propuesta"];
+var TEMP = { caliente:"🔥 Caliente", tibio:"🌤 Tibio", frio:"❄️ Frío" };
+var TIC = { contactar:"👋", proximo:"📌", citar:"📅", seguir:"🔁", respondio:"💬", reunion_hoy:"🎥", reunion_paso:"❓", encuesta_reunion:"📝", propuesta:"📄", encuesta_no_compra:"🤔" };
+var MOTIVOS = ["Precio","No entendió para qué le sirve","No es el momento","Se fue con otro","No contestó más","Lo tiene que consultar","Otro"];
+
+function $(i){ return document.getElementById(i); }
+function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function aviso(t){ var e = $("toast"); e.textContent = t; e.classList.add("on"); clearTimeout(aviso.t); aviso.t = setTimeout(function(){ e.classList.remove("on"); }, 2600); }
+function fecha(v, conHora){
+  if(!v) return "—"; var d = new Date(v); if(isNaN(d)) return esc(v);
+  var s = d.toLocaleDateString("es-CR", { day:"numeric", month:"short" });
+  return conHora ? s + " " + d.toLocaleTimeString("es-CR", { hour:"2-digit", minute:"2-digit" }) : s;
+}
+function hace(v){
+  if(!v) return "—"; var m = (Date.now() - new Date(v).getTime()) / 60000;
+  if(m < 60) return Math.max(1, Math.round(m)) + " min"; if(m < 1440) return Math.round(m / 60) + " h"; return Math.round(m / 1440) + " d";
+}
+function chip(c){ return c ? '<span class="chip ch-' + esc(c) + '">' + esc(c) + '</span>' : ""; }
+function etapa(e){ return '<span class="et et-' + esc(e) + '">' + esc(ETQ[e] || e) + '</span>'; }
+function nombre(c){ return c.nombre || c.negocio || c.telefono || c.cliente_id; }
+function telWa(t){ var d = String(t || "").replace(/\D/g, ""); if(d.length === 8) d = "506" + d; return d.length >= 10 ? d : ""; }
+
+function pedir(ruta, cuerpo){
+  cuerpo = cuerpo || {}; cuerpo.token = TOKEN;
+  return fetch(API + ruta, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(cuerpo) })
+    .then(function(r){ if(r.status === 401){ salir(); throw new Error("sesion"); } return r.json(); });
+}
+
+/* ---------------- sesión ---------------- */
+function entrar(){
+  var u = $("u").value.trim(), p = $("p").value;
+  if(!u || !p){ $("err").textContent = "Poné usuario y contraseña."; return; }
+  $("entrar").disabled = true; $("err").textContent = "";
+  fetch(API + "/portal-ventas", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ accion:"login", usuario:u, clave:p }) })
+    .then(function(r){ return r.json(); }).then(function(d){
+      $("entrar").disabled = false;
+      if(!d || !d.ok){ $("err").textContent = (d && d.motivo) || "Usuario o contraseña incorrectos."; return; }
+      TOKEN = d.token;
+      try{ localStorage.setItem("sis_token", d.token); localStorage.setItem("sis_nombre", d.nombre || u); }catch(e){}
+      abrir(d.nombre || u);
+    }).catch(function(){ $("entrar").disabled = false; $("err").textContent = "No se pudo conectar. Revisá el internet."; });
+}
+function abrir(n){ $("login").style.display = "none"; $("app").style.display = "grid"; $("quien").textContent = n; pintarMenu(); cargar(); }
+function salir(){ try{ localStorage.removeItem("sis_token"); }catch(e){} TOKEN = null; $("app").style.display = "none"; $("login").style.display = "grid"; }
+
+/* ---------------- datos ---------------- */
+function cargar(){
+  if(!TOKEN) return;
+  return pedir("/sistema", { accion:"resumen" }).then(function(d){
+    if(!d || !d.ok) return;
+    D = d; pintarMenu(); pintar();
+    var h = new Date(); $("act").textContent = "Actualizado " + ("0" + h.getHours()).slice(-2) + ":" + ("0" + h.getMinutes()).slice(-2);
+  }).catch(function(e){ if(String(e.message) !== "sesion") aviso("No se pudo actualizar"); });
+}
+function porId(id){ return (D && D.clientes || []).filter(function(c){ return c.cliente_id === id; })[0]; }
+
+/* ---------------- menú ---------------- */
+function pintarMenu(){
+  var n = D ? D.kpis.tareas : 0;
+  var h = MENU.map(function(m){
+    return '<button class="men' + (VISTA === m[0] ? " on" : "") + '" data-v="' + m[0] + '"><svg viewBox="0 0 24 24">' + ICON[m[0]] + '</svg>' + m[1] +
+      (m[0] === "hoy" && n ? '<span class="n">' + n + '</span>' : "") + '</button>';
+  }).join("");
+  $("menu").innerHTML = h; $("barra-movil").innerHTML = h;
+}
+function ir(v){ VISTA = v; pintarMenu(); pintar(); window.scrollTo(0, 0); try{ history.replaceState(null, "", "#" + v); }catch(e){} }
+
+/* ---------------- vistas ---------------- */
+function pintar(){
+  if(!D){ return; }
+  var t = { hoy:"Hoy <span class='serif'>toca</span>", clientes:"Clientes", embudo:"Embudo", atencion:"Chats", encuestas:"Encuestas", campanas:"Campañas" };
+  $("titulo").innerHTML = t[VISTA];
+  ({ hoy:vHoy, clientes:vClientes, embudo:vEmbudo, atencion:vAtencion, encuestas:vEncuestas, campanas:vCampanas })[VISTA]();
+}
+function kpis(l){ return '<div class="kpis">' + l.map(function(k){ return '<div class="kpi ' + (k[2] || "") + '"><div class="v">' + (k[1] == null ? "—" : k[1]) + '</div><div class="l">' + k[0] + '</div></div>'; }).join("") + '</div>'; }
+
+function vHoy(){
+  var k = D.kpis;
+  var h = kpis([["Clientes activos", k.abiertos], ["Nuevos esta semana", k.nuevos_semana, "oro"], ["Urgentes", k.urgentes, k.urgentes ? "rojo" : ""], ["Reuniones agendadas", k.reuniones_agendadas], ["Dejaron de responder", k.sin_respuesta], ["Ganados", k.ganados, "verde"]]);
+  var urg = D.tareas.filter(function(x){ return x.prioridad === 1; }), norm = D.tareas.filter(function(x){ return x.prioridad !== 1; });
+  function lista(l){ return l.map(function(x){
+    return '<div class="tarea" data-c="' + esc(x.cliente_id) + '"><div class="ic">' + (TIC[x.tipo] || "•") + '</div><div class="cu"><div class="q">' + esc(x.txt) + '</div>' +
+      '<div class="s">' + esc(x.nombre) + (x.negocio && x.negocio !== x.nombre ? " · " + esc(x.negocio) : "") + '</div></div>' + chip(x.canal) + '<span class="id">' + esc(x.cliente_id) + '</span></div>';
+  }).join(""); }
+  if(!D.tareas.length) h += '<div class="vacio">Todo al día. No hay seguimientos pendientes. 🎉</div>';
+  if(urg.length) h += '<div class="grupo"><h3><i></i>Urgente</h3>' + lista(urg) + '</div>';
+  if(norm.length) h += '<div class="grupo normal"><h3><i></i>Para hoy</h3>' + lista(norm) + '</div>';
+  $("vista").innerHTML = h;
+}
+
+function vClientes(){
+  var canales = {}; D.clientes.forEach(function(c){ if(c.canal) canales[c.canal] = 1; });
+  var h = '<div class="herr"><input class="campo" id="buscar" placeholder="Buscar por nombre, negocio, teléfono o ID" value="' + esc(FILTRO.q) + '">' +
+    '<select class="campo" id="f-canal"><option value="">Todos los canales</option>' + Object.keys(canales).sort().map(function(c){ return '<option' + (FILTRO.canal === c ? " selected" : "") + '>' + esc(c) + '</option>'; }).join("") + '</select></div>';
+  var ets = [["abiertos","Activos"],["todos","Todos"]].concat(Object.keys(ETQ).map(function(e){ return [e, ETQ[e]]; }));
+  h += '<div class="herr">' + ets.map(function(e){ return '<button class="fl' + (FILTRO.etapa === e[0] ? " on" : "") + '" data-fe="' + e[0] + '">' + e[1] + '</button>'; }).join("") + '</div>';
+  var q = FILTRO.q.toLowerCase();
+  var l = D.clientes.filter(function(c){
+    if(FILTRO.etapa === "abiertos" && ABIERTAS.indexOf(c.etapa) === -1) return false;
+    if(FILTRO.etapa !== "abiertos" && FILTRO.etapa !== "todos" && c.etapa !== FILTRO.etapa) return false;
+    if(FILTRO.canal && c.canal !== FILTRO.canal) return false;
+    if(q && (c.cliente_id + " " + c.nombre + " " + c.negocio + " " + c.telefono + " " + c.correo).toLowerCase().indexOf(q) === -1) return false;
+    return true;
+  });
+  if(!l.length){ $("vista").innerHTML = h + '<div class="vacio">No hay clientes con ese filtro.</div>'; ligarFiltros(); return; }
+  h += '<table class="tabla"><thead><tr><th>ID</th><th>Cliente</th><th class="oc">Canal</th><th>Etapa</th><th class="oc">Sin respuesta</th><th class="oc">Próximo paso</th></tr></thead><tbody>' +
+    l.map(function(c){
+      var sr = c.dias_sin_respuesta;
+      return '<tr data-c="' + esc(c.cliente_id) + '"><td class="id">' + esc(c.cliente_id) + '</td><td><div class="nom">' + esc(nombre(c)) + (c.tareas.length ? ' <span title="Tiene tareas" style="color:var(--oro2)">●</span>' : "") + '</div><div class="sub">' +
+        esc(c.negocio && c.negocio !== c.nombre ? c.negocio : (c.origen_detalle || c.telefono)) + '</div></td><td class="oc">' + chip(c.canal) + '</td><td>' + etapa(c.etapa) + '</td>' +
+        '<td class="oc">' + (sr ? '<span class="' + (sr >= 3 ? "alerta" : "") + '">' + sr + ' d · ' + (c.intentos || 0) + ' int.</span>' : '<span class="sub">—</span>') + '</td>' +
+        '<td class="oc"><div>' + esc(c.proximo_paso || "—") + '</div><div class="sub">' + (c.fecha_proximo ? esc(c.fecha_proximo) : "") + '</div></td></tr>';
+    }).join("") + '</tbody></table>';
+  $("vista").innerHTML = h; ligarFiltros();
+}
+function ligarFiltros(){
+  var b = $("buscar"); if(b){ b.oninput = function(){ FILTRO.q = b.value; var p = b.selectionStart; vClientes(); var n = $("buscar"); n.focus(); n.setSelectionRange(p, p); }; }
+  var s = $("f-canal"); if(s) s.onchange = function(){ FILTRO.canal = s.value; vClientes(); };
+}
+
+function vEmbudo(){
+  var cols = ["nuevo","contestado","reunion_agendada","reunion_realizada","propuesta","ganado","perdido","sin_respuesta"];
+  $("vista").innerHTML = '<div class="embudo">' + cols.map(function(e){
+    var l = D.clientes.filter(function(c){ return c.etapa === e; });
+    return '<div class="col"><h4>' + ETQ[e] + '<span>' + l.length + '</span></h4>' + l.slice(0, 60).map(function(c){
+      return '<div class="tj" data-c="' + esc(c.cliente_id) + '"><b>' + esc(nombre(c)) + '</b><small>' + esc(c.cliente_id) + ' · ' + esc(c.canal || "") +
+        (c.valor_usd ? ' · $' + Number(c.valor_usd).toLocaleString("es-CR") : "") + (c.tareas.length ? ' · <span style="color:var(--oro2)">' + c.tareas.length + ' tarea' + (c.tareas.length > 1 ? "s" : "") + '</span>' : "") + '</small></div>';
+    }).join("") + '</div>';
+  }).join("") + '</div>';
+}
+
+function vAtencion(){
+  $("vista").innerHTML = '<div class="cargando">Cargando las conversaciones…</div>';
+  pedir("/crm", { accion:"atencion" }).then(function(d){
+    var l = (d && d.conversaciones) || [];
+    if(!l.length){ $("vista").innerHTML = '<div class="vacio">No hay conversaciones.</div>'; return; }
+    var porClave = {}; D.clientes.forEach(function(c){ String(c.contactos || "").split(",").forEach(function(k){ if(k) porClave[k.trim()] = c; }); });
+    $("vista").innerHTML = '<p class="sub" style="color:var(--gris);margin-bottom:12px">Lo que Claudia está atendiendo en WhatsApp, Instagram, Facebook, TikTok y la web. Tocá una para abrir la ficha del cliente.</p>' +
+      l.map(function(c){
+        var cli = porClave[c.contacto];
+        return '<div class="tarea" ' + (cli ? 'data-c="' + esc(cli.cliente_id) + '"' : 'data-chat="' + esc(c.contacto) + '"') + '><div class="ic">💬</div><div class="cu"><div class="q">' + esc(c.nombre || (cli && nombre(cli)) || c.contacto) + '</div><div class="s">' + esc(c.ultimo_mensaje) + '</div></div>' +
+          chip(c.canal) + '<span class="id">' + (cli ? esc(cli.cliente_id) : "sin ID") + ' · ' + hace(c.fecha_ultimo) + '</span></div>';
+      }).join("");
+  }).catch(function(){ $("vista").innerHTML = '<div class="vacio">No se pudo cargar.</div>'; });
+}
+
+function barras(obj, total){
+  var ks = Object.keys(obj).sort(function(a, b){ return obj[b] - obj[a]; });
+  if(!ks.length) return '<div class="vacio" style="padding:20px">Todavía no hay respuestas.</div>';
+  var max = Math.max.apply(null, ks.map(function(k){ return obj[k]; }));
+  return ks.map(function(k){ return '<div class="barra"><span>' + esc(k) + '</span><div class="b"><i style="width:' + Math.round(100 * obj[k] / max) + '%"></i></div><span class="n">' + obj[k] + '</span></div>'; }).join("");
+}
+function vEncuestas(){
+  var e = D.encuestas;
+  var h = kpis([["Enviadas", e.enviadas], ["Respondidas", e.respondidas, "oro"], ["Calificación promedio", e.promedio == null ? null : e.promedio + " / 5", "verde"], ["Tasa de respuesta", e.enviadas ? Math.round(100 * e.respondidas / e.enviadas) + " %" : null]]);
+  h += '<div class="duo"><div class="tarj"><h3>¿Por qué no avanzaron?</h3>' + barras(e.motivos) + '</div><div class="tarj"><h3>¿Les quedó claro para qué sirve?</h3>' + barras(e.claridad) + '</div></div>';
+  h += '<div class="tarj" style="margin-top:14px"><h3>Últimas respuestas</h3>' + (e.ultimas.length ? e.ultimas.map(function(r){
+    var ex = {}; try{ ex = JSON.parse(r.respuestas || "{}"); }catch(x){}
+    return '<div class="resp" data-c="' + esc(r.cliente_id) + '" style="cursor:pointer"><b>' + esc(r.nombre || r.cliente_id) + '</b> · ' + (r.tipo === "no_compra" ? "¿Por qué no avanzó?" : "Reunión") + (r.calificacion ? ' · ' + "★".repeat(r.calificacion) : "") +
+      '<div>' + [r.claridad, r.motivo, ex.util ? "Lo más útil: " + ex.util : "", ex.retomar ? "Para retomarlo: " + ex.retomar : ""].filter(Boolean).map(esc).join(" · ") + '</div>' +
+      (r.comentario ? '<div style="margin-top:3px">«' + esc(r.comentario) + '»</div>' : "") + '<div class="m">' + esc(r.cliente_id) + ' · ' + fecha(r.fecha_respuesta, true) + '</div></div>';
+  }).join("") : '<div class="vacio" style="padding:20px">Todavía no hay respuestas. Las encuestas se generan desde la ficha de cada cliente.</div>') + '</div>';
+  $("vista").innerHTML = h;
+}
+
+function vCampanas(){
+  function tabla(obj, col){
+    var ks = Object.keys(obj).sort(function(a, b){ return obj[b].leads - obj[a].leads; });
+    return '<table class="tabla"><thead><tr><th>' + col + '</th><th>Leads</th><th>Reuniones</th><th>Ganados</th><th class="oc">Conversión</th>' + (col === "Fuente · campaña" ? '<th class="oc">Vendido</th>' : "") + '</tr></thead><tbody>' +
+      ks.map(function(k){ var o = obj[k]; return '<tr style="cursor:default"><td class="nom">' + esc(k) + '</td><td>' + o.leads + '</td><td>' + o.reuniones + '</td><td>' + o.ganados + '</td><td class="oc">' + (o.leads ? Math.round(100 * o.ganados / o.leads) : 0) + ' %</td>' +
+        (col === "Fuente · campaña" ? '<td class="oc">$' + (o.valor || 0).toLocaleString("es-CR") + '</td>' : "") + '</tr>'; }).join("") + '</tbody></table>';
+  }
+  $("vista").innerHTML = '<div class="tarj" style="margin-bottom:14px"><h3>Por canal de entrada</h3>' + tabla(D.canales, "Canal") + '</div>' +
+    '<div class="tarj"><h3>Por fuente y campaña</h3>' + tabla(D.campanas, "Fuente · campaña") +
+    '<p style="color:var(--gris);font-size:12.5px;margin-top:10px">La campaña sale de los enlaces con <b>utm_source</b> y <b>utm_campaign</b> (o del clic de Google Ads / Meta). Todo lo que entra sin eso cuenta como «Orgánico».</p></div>';
+}
+
+/* ---------------- ficha ---------------- */
+function abrirFicha(id){
+  var c = porId(id); if(!c) return;
+  FICHA = { c: c, seg: null, chat: null, enc: null };
+  $("ficha").style.display = "block"; document.body.style.overflow = "hidden";
+  pintarFicha();
+  var chat = String(c.contactos || "").split(",").map(function(k){ return k.trim(); }).filter(function(k){ return /^(wa|ig|fb|tt)_/.test(k); })[0] || "";
+  pedir("/sistema", { accion:"ficha", cliente_id:id, chat:chat }).then(function(d){
+    if(!d || !d.ok || !FICHA || FICHA.c.cliente_id !== id) return;
+    FICHA.c = d.cliente; FICHA.seg = d.seguimientos; FICHA.chat = d.chat; FICHA.enc = d.encuestas; pintarFicha();
+  }).catch(function(){});
+}
+function cerrarFicha(){ $("ficha").style.display = "none"; document.body.style.overflow = ""; FICHA = null; }
+function pintarFicha(){
+  var c = FICHA.c, wa = telWa(c.telefono);
+  var h = '<div class="f-cab"><div class="fila"><span class="id" style="color:var(--oro2);font-weight:700">' + esc(c.cliente_id) + '</span>' + chip(c.canal) + etapa(c.etapa) +
+    '<span class="temp">' + (TEMP[c.temperatura] || "") + '</span><button class="x" id="f-x" aria-label="Cerrar">&times;</button></div>' +
+    '<h3>' + esc(nombre(c)) + '</h3><div class="sub">' + esc([c.negocio !== c.nombre ? c.negocio : "", c.origen_detalle, c.fuente ? "Fuente: " + c.fuente + (c.campana ? " · " + c.campana : "") : ""].filter(Boolean).join(" · ")) +
+    ' · Entró ' + fecha(c.primer_contacto, true) + '</div></div>';
+  if(c.tareas && c.tareas.length) h += '<div class="f-sec tareas-f"><h4>Lo que toca</h4>' + c.tareas.map(function(t){ return '<div class="tf p' + t.prioridad + '">' + (TIC[t.tipo] || "•") + ' ' + esc(t.txt) + '</div>'; }).join("") + '</div>';
+  h += '<div class="f-sec"><h4>Acciones</h4><div class="acciones">' +
+    (wa ? '<a class="btn2 v" href="https://wa.me/' + wa + '" target="_blank" rel="noopener">WhatsApp</a>' : "") +
+    '<button class="btn2 a" data-a="contacto">Registrar contacto</button>' +
+    '<button class="btn2" data-a="reunion">' + (c.etapa === "reunion_agendada" ? "Cambiar reunión" : "Agendar reunión") + '</button>' +
+    (c.etapa === "reunion_agendada" ? '<button class="btn2 v" data-a="realizada">Reunión hecha</button><button class="btn2 r" data-a="no_asistio">No se presentó</button>' : "") +
+    '<button class="btn2 o" data-a="propuesta">Propuesta enviada</button>' +
+    '<button class="btn2" data-a="encuesta">Encuesta</button>' +
+    '<button class="btn2 v" data-a="ganado">Ganado</button><button class="btn2 r" data-a="perdido">Perdido</button>' +
+    '<button class="btn2" data-a="no_califica" title="Contactos personales, proveedores, spam">No es cliente</button>' +
+    '</div></div>';
+  h += '<div class="f-sec"><h4>Datos y seguimiento</h4><div class="datos">' +
+    campo("nombre", "Nombre", c.nombre) + campo("negocio", "Negocio", c.negocio) + campo("telefono", "Teléfono", c.telefono) + campo("correo", "Correo", c.correo) +
+    sel("etapa", "Etapa", c.etapa, Object.keys(ETQ).map(function(e){ return [e, ETQ[e]]; })) + sel("temperatura", "Temperatura", c.temperatura, [["caliente","🔥 Caliente"],["tibio","🌤 Tibio"],["frio","❄️ Frío"]]) +
+    campo("proximo_paso", "Próximo paso", c.proximo_paso) + campo("fecha_proximo", "Fecha del próximo paso", c.fecha_proximo, "date") +
+    campo("responsable", "Responsable", c.responsable) + campo("valor_usd", "Valor estimado (USD)", c.valor_usd || "", "number") +
+    campo("fuente", "Fuente", c.fuente) + campo("campana", "Campaña", c.campana) +
+    '</div><label>Notas</label><textarea class="campo" id="fc-notas">' + esc(c.notas) + '</textarea>' +
+    '<div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="btn" id="f-guardar">Guardar cambios</button>' +
+    '<span style="color:var(--gris);font-size:12.5px">Reunión: ' + (c.reunion_fecha ? fecha(c.reunion_fecha, true) + " (" + esc(c.reunion_estado || "") + ")" : "—") +
+    ' · Intentos sin respuesta: ' + (c.intentos || 0) + (c.motivo_perdida ? " · Motivo: " + esc(c.motivo_perdida) : "") + (c.calificacion ? " · Encuesta: " + "★".repeat(c.calificacion) : "") + '</span></div></div>';
+  h += '<div class="f-sec"><h4>Bitácora</h4>' + (FICHA.seg == null ? '<div class="cargando" style="padding:14px">Cargando…</div>' : FICHA.seg.length ? '<div class="tl">' + FICHA.seg.map(function(s){
+    return '<div class="ev t-' + esc(s.tipo) + '"><div>' + esc(s.detalle) + '</div><div class="m">' + fecha(s.fecha, true) + ' · ' + esc(s.quien) + '</div></div>';
+  }).join("") + '</div>' : '<div class="sub" style="color:var(--gris)">Sin movimientos todavía.</div>') + '</div>';
+  if(FICHA.chat && FICHA.chat.length) h += '<div class="f-sec"><h4>Conversación con Claudia</h4>' + FICHA.chat.map(function(m){
+    return (m.entrada ? '<div class="msg cli"><div class="t">' + esc(m.entrada) + '</div><div class="m">' + fecha(m.fecha, true) + '</div></div>' : "") +
+      (m.salida ? '<div class="msg bot"><div class="t">' + esc(m.salida) + '</div><div class="m">Claudia</div></div>' : "");
+  }).join("") + '</div>';
+  $("f-panel").innerHTML = h;
+}
+function campo(k, l, v, tipo){ return '<div><label for="fc-' + k + '">' + l + '</label><input class="campo" id="fc-' + k + '" type="' + (tipo || "text") + '" value="' + esc(v == null ? "" : v) + '"></div>'; }
+function sel(k, l, v, ops){ return '<div><label for="fc-' + k + '">' + l + '</label><select class="campo" id="fc-' + k + '">' + ops.map(function(o){ return '<option value="' + o[0] + '"' + (o[0] === v ? " selected" : "") + '>' + o[1] + '</option>'; }).join("") + '</select></div>'; }
+
+function accion(cuerpo, ok){
+  cuerpo.cliente_id = cuerpo.cliente_id || FICHA.c.cliente_id;
+  return pedir("/sistema", cuerpo).then(function(d){
+    if(!d || !d.ok){ aviso((d && d.motivo) || "No se pudo guardar"); return d; }
+    aviso(ok || "Listo"); var id = cuerpo.cliente_id;
+    return cargar().then(function(){ if(FICHA) abrirFicha(id); return d; });
+  }).catch(function(){ aviso("No se pudo guardar"); });
+}
+function guardarFicha(){
+  var ch = {}; ["nombre","negocio","telefono","correo","etapa","temperatura","proximo_paso","fecha_proximo","responsable","valor_usd","fuente","campana","notas"].forEach(function(k){ ch[k] = $("fc-" + k).value; });
+  accion({ accion:"guardar", cambios:ch }, "Cambios guardados");
+}
+
+/* ---------------- diálogos ---------------- */
+function dialogo(html, alAceptar, txtAceptar){
+  $("d-caja").innerHTML = html + '<div class="pie"><button class="btn2" id="d-no">Cancelar</button>' + (alAceptar ? '<button class="btn" id="d-si">' + (txtAceptar || "Guardar") + '</button>' : "") + '</div>';
+  $("dlg").style.display = "block";
+  $("d-no").onclick = cerrarDlg;
+  if(alAceptar) $("d-si").onclick = function(){ if(alAceptar() !== false) cerrarDlg(); };
+  $("d-caja").querySelectorAll(".opc").forEach(function(g){ g.onclick = function(e){ var b = e.target.closest("button"); if(!b) return; g.querySelectorAll("button").forEach(function(x){ x.classList.remove("on"); }); b.classList.add("on"); }; });
+}
+function cerrarDlg(){ $("dlg").style.display = "none"; }
+function opc(id){ var b = document.querySelector("#" + id + " button.on"); return b ? b.getAttribute("data-v") : ""; }
+function manana(n){ var d = new Date(Date.now() + (n || 1) * 86400000); return d.toISOString().slice(0, 10); }
+
+function dContacto(){
+  dialogo('<h3>Registrar contacto</h3><p class="p">Cada vez que le escribís o lo llamás. Si no responde, cuenta como intento; a los ' + D.reglas.INTENTOS_MAX + ' pasa solo a «Dejó de responder».</p>' +
+    '<label>Por dónde</label><div class="opc" id="o-medio"><button data-v="WhatsApp" class="on">WhatsApp</button><button data-v="Llamada">Llamada</button><button data-v="Correo">Correo</button><button data-v="Instagram">Instagram</button><button data-v="En persona">En persona</button></div>' +
+    '<label>¿Respondió?</label><div class="opc" id="o-res"><button data-v="respondio">Sí, respondió</button><button data-v="no_respondio" class="on">No respondió</button></div>' +
+    '<label>Qué se habló</label><textarea class="campo" id="d-det" placeholder="Opcional"></textarea>' +
+    '<label>Próximo paso</label><input class="campo" id="d-prox" placeholder="Ej.: volver a escribir, mandar precios…">' +
+    '<label>¿Cuándo?</label><input class="campo" type="date" id="d-fprox" value="' + manana(D.reglas.SEGUIR_DIAS) + '">',
+    function(){ accion({ accion:"contacto", medio:opc("o-medio"), resultado:opc("o-res"), detalle:$("d-det").value, proximo_paso:$("d-prox").value, fecha_proximo:$("d-prox").value ? $("d-fprox").value : "" }, "Contacto registrado"); });
+}
+function dReunion(){
+  var d = new Date(Date.now() + 86400000); d.setHours(10, 0, 0, 0);
+  var v = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  dialogo('<h3>Agendar reunión</h3><p class="p">Queda en la ficha y te aparece en «Hoy» el día de la reunión. Después te pregunta si se hizo.</p>' +
+    '<label>Fecha y hora</label><input class="campo" type="datetime-local" id="d-f" value="' + v + '">' +
+    '<label>Detalle</label><input class="campo" id="d-det" placeholder="Ej.: por Meet, en su local…">',
+    function(){ if(!$("d-f").value){ aviso("Poné la fecha"); return false; } accion({ accion:"reunion", fecha:new Date($("d-f").value).toISOString(), detalle:$("d-det").value }, "Reunión agendada"); });
+}
+function dResultado(estado){
+  dialogo('<h3>' + (estado === "realizada" ? "Reunión hecha" : "No se presentó") + '</h3><label>Comentario</label><textarea class="campo" id="d-det" placeholder="' + (estado === "realizada" ? "Qué le interesó, objeciones, qué sigue…" : "Opcional") + '"></textarea>',
+    function(){ accion({ accion:"reunion_resultado", estado:estado, detalle:$("d-det").value }, "Guardado"); });
+}
+function dPropuesta(){
+  dialogo('<h3>Propuesta enviada</h3><label>Valor (USD)</label><input class="campo" type="number" id="d-v" value="' + esc(FICHA.c.valor_usd || "") + '"><label>Detalle</label><input class="campo" id="d-det" placeholder="Ej.: WhatsApp + CRM, implementación + mensualidad">',
+    function(){ accion({ accion:"propuesta", valor_usd:$("d-v").value, detalle:$("d-det").value }, "Propuesta registrada"); });
+}
+function dCerrar(res){
+  if(res === "perdido"){
+    dialogo('<h3>Marcar como perdido</h3><p class="p">El motivo alimenta el análisis de «Encuestas».</p><label>Motivo</label><div class="opc" id="o-mot">' + MOTIVOS.map(function(m, i){ return '<button data-v="' + esc(m) + '"' + (i === 0 ? ' class="on"' : "") + '>' + esc(m) + '</button>'; }).join("") + '</div>',
+      function(){ accion({ accion:"cerrar", resultado:"perdido", motivo:opc("o-mot") }, "Marcado como perdido"); }, "Marcar perdido");
+  } else if(res === "ganado"){
+    dialogo('<h3>¡Ganado! 🎉</h3><label>Valor cerrado (USD)</label><input class="campo" type="number" id="d-v" value="' + esc(FICHA.c.valor_usd || "") + '">',
+      function(){ accion({ accion:"cerrar", resultado:"ganado", valor_usd:$("d-v").value }, "¡Cliente ganado!"); }, "Marcar ganado");
+  } else {
+    dialogo('<h3>No es un cliente</h3><p class="p">Para contactos personales, proveedores o spam. Sale de las listas y de las tareas.</p>',
+      function(){ accion({ accion:"cerrar", resultado:"no_califica" }, "Listo"); }, "Confirmar");
+  }
+}
+function dEncuesta(){
+  var sug = FICHA.c.etapa === "propuesta" ? "no_compra" : "reunion";
+  dialogo('<h3>Encuesta</h3><p class="p">Genera un enlace único para este cliente. Lo mandás por WhatsApp y las respuestas caen solas acá.</p>' +
+    '<label>Tipo</label><div class="opc" id="o-tipo"><button data-v="reunion"' + (sug === "reunion" ? ' class="on"' : "") + '>Qué le pareció la reunión</button><button data-v="no_compra"' + (sug === "no_compra" ? ' class="on"' : "") + '>¿Por qué no ha comprado?</button></div><div id="d-enl"></div>',
+    function(){
+      $("d-si").disabled = true;
+      pedir("/sistema", { accion:"encuesta", cliente_id:FICHA.c.cliente_id, tipo:opc("o-tipo") }).then(function(d){
+        if(!d || !d.ok){ aviso((d && d.motivo) || "No se pudo crear"); return; }
+        $("d-enl").innerHTML = '<div class="enlace">' + esc(d.mensaje) + '</div><div class="acciones" style="margin-top:10px">' +
+          (d.whatsapp ? '<a class="btn2 v" href="' + esc(d.whatsapp) + '" target="_blank" rel="noopener">Enviar por WhatsApp</a>' : "") +
+          '<button class="btn2" id="d-copiar">Copiar mensaje</button></div>';
+        $("d-copiar").onclick = function(){ try{ navigator.clipboard.writeText(d.mensaje); aviso("Copiado"); }catch(e){} };
+        $("d-si").style.display = "none"; $("d-no").textContent = "Cerrar";
+        $("d-no").onclick = function(){ cerrarDlg(); var id = FICHA && FICHA.c.cliente_id; cargar().then(function(){ if(id) abrirFicha(id); }); };
+      });
+      return false;
+    }, "Crear enlace");
+}
+function dNuevo(){
+  dialogo('<h3>Nuevo cliente</h3><p class="p">Para lo que entra por fuera del sistema: una llamada, un referido, una feria. Se le asigna un ID.</p>' +
+    '<label>Nombre</label><input class="campo" id="n-nombre"><label>Negocio</label><input class="campo" id="n-negocio">' +
+    '<label>Teléfono</label><input class="campo" id="n-tel" inputmode="tel"><label>Correo</label><input class="campo" id="n-correo" type="email">' +
+    '<label>Canal</label><div class="opc" id="o-canal"><button data-v="WhatsApp" class="on">WhatsApp</button><button data-v="Instagram">Instagram</button><button data-v="Facebook">Facebook</button><button data-v="TikTok">TikTok</button><button data-v="Google">Google</button><button data-v="Referido">Referido</button><button data-v="Otro">Otro</button></div>' +
+    '<label>Campaña (si vino de un anuncio)</label><input class="campo" id="n-camp" placeholder="Opcional">' +
+    '<label>Notas</label><textarea class="campo" id="n-notas"></textarea>',
+    function(){
+      var d = { nombre:$("n-nombre").value, negocio:$("n-negocio").value, telefono:$("n-tel").value, correo:$("n-correo").value, canal:opc("o-canal"), campana:$("n-camp").value, notas:$("n-notas").value };
+      if(d.nombre.trim().length < 2 && d.negocio.trim().length < 2){ aviso("Poné el nombre o el negocio"); return false; }
+      if(d.campana) d.fuente = d.canal === "Google" ? "Google Ads" : (d.canal === "Instagram" || d.canal === "Facebook" ? "Meta" : d.canal);
+      pedir("/sistema", { accion:"nuevo", datos:d }).then(function(r){
+        if(!r || !r.ok){ aviso((r && r.motivo) || "No se pudo crear"); return; }
+        aviso("Cliente " + r.cliente_id + " creado"); cargar().then(function(){ abrirFicha(r.cliente_id); });
+      });
+    }, "Crear");
+}
+
+/* ---------------- eventos ---------------- */
+document.querySelectorAll("[data-logo]").forEach(function(e){ e.innerHTML = LOGO; });
+$("entrar").onclick = entrar;
+$("p").addEventListener("keydown", function(e){ if(e.key === "Enter") entrar(); });
+$("u").addEventListener("keydown", function(e){ if(e.key === "Enter") $("p").focus(); });
+$("salir").onclick = salir;
+$("refrescar").onclick = cargar;
+$("btn-nuevo").onclick = dNuevo;
+document.addEventListener("click", function(e){
+  var m = e.target.closest("[data-v]"); if(m && m.classList.contains("men")){ ir(m.getAttribute("data-v")); return; }
+  var fe = e.target.closest("[data-fe]"); if(fe){ FILTRO.etapa = fe.getAttribute("data-fe"); vClientes(); return; }
+  if(e.target.id === "f-x" || e.target === $("ficha")){ cerrarFicha(); return; }
+  if(e.target.id === "f-guardar"){ guardarFicha(); return; }
+  var a = e.target.closest("[data-a]");
+  if(a && FICHA){ var x = a.getAttribute("data-a");
+    ({ contacto:dContacto, reunion:dReunion, realizada:function(){ dResultado("realizada"); }, no_asistio:function(){ dResultado("no_asistio"); },
+       propuesta:dPropuesta, encuesta:dEncuesta, ganado:function(){ dCerrar("ganado"); }, perdido:function(){ dCerrar("perdido"); }, no_califica:function(){ dCerrar("no_califica"); } })[x]();
+    return; }
+  var c = e.target.closest("[data-c]"); if(c && !e.target.closest("#ficha") && !e.target.closest("#dlg")){ abrirFicha(c.getAttribute("data-c")); return; }
+  if(e.target.closest("[data-chat]")) aviso("Ese chat todavía no tiene ficha: aparece en unos minutos.");
+});
+$("dlg").addEventListener("click", function(e){ if(e.target === $("dlg")) cerrarDlg(); });
+document.addEventListener("keydown", function(e){ if(e.key === "Escape"){ if($("dlg").style.display === "block") cerrarDlg(); else if(FICHA) cerrarFicha(); } });
+
+(function(){
+  var h = location.hash.replace("#", ""); if(MENU.some(function(m){ return m[0] === h; })) VISTA = h;
+  var t = null, n = "";
+  try{ t = localStorage.getItem("sis_token"); n = localStorage.getItem("sis_nombre") || ""; }catch(e){}
+  if(t){ TOKEN = t; $("login").style.display = "none"; $("app").style.display = "grid"; $("quien").textContent = n; pintarMenu(); cargar(); }
+})();
+setInterval(function(){ if(TOKEN && !FICHA && $("dlg").style.display !== "block") cargar(); }, 120000);
+document.addEventListener("visibilitychange", function(){ if(!document.hidden && TOKEN && !FICHA) cargar(); });
+</script>
+</body>
+</html>
